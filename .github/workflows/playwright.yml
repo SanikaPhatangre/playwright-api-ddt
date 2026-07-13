@@ -10,6 +10,8 @@ jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
+    env:
+      BASE_URL: 'https://jsonplaceholder.typicode.com'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -23,7 +25,7 @@ jobs:
         run: npx playwright install --with-deps
       
       - name: Run Playwright tests
-        run: npx playwright test
+        run: npx playwright test --retries=2
 
       - uses: actions/upload-artifact@v4
         if: always()
@@ -31,3 +33,19 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 30
+
+      - name: Send email on failure
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+         
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: GitHub Actions Failed - Playwright Tests
+          body: |
+            The Playwright tests have failed in the latest run.
+            Check the report here: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          to: phsanika@gmail.com
+          from: GitHub Actions

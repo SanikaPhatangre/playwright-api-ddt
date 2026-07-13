@@ -12,6 +12,13 @@ import { defineConfig, devices } from '@playwright/test';
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
+   globalSetup: require.resolve('./tests/global-setup'), // Add this line
+  use: {
+    // Optional: Set default headers for all tests
+    extraHTTPHeaders: {
+      'Content-Type': 'application/json',
+    },
+  },
   testDir: './tests',
   /* Run tests in files in parallel */
   fullyParallel: true,
