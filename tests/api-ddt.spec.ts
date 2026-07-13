@@ -19,7 +19,8 @@ for (const record of records) {
 
   test(`Create New User: ${record.name}`, async ({ request }) => {
     // JSONPlaceholder uses /users for creation
-    const response = await request.post('https://jsonplaceholder.typicode.com/users', {
+// It will look for the BASE_URL from the environment, defaulting to the live site if nothing is set
+const response = await request.post(`${process.env.BASE_URL || 'https://jsonplaceholder.typicode.com'}/users`, {
       data: {
         name: record.name,
         job: record.job
