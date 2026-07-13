@@ -3,34 +3,30 @@ import fs from 'fs';
 import path from 'path';
 import { parse } from 'csv-parse/sync';
 
-interface TestUser {
-  name: string;
-  job: string;
-}
+interface TestUser { name: string; job: string; }
 
 const records: TestUser[] = parse(fs.readFileSync(path.join(__dirname, '../test_users.csv'), 'utf-8'), {
-  columns: true,
-  skip_empty_lines: true,
-  trim: true
+  columns: true, skip_empty_lines: true, trim: true
 });
 
 for (const record of records) {
-  if (!record.name) continue;
-
-  test(`Create New User: ${record.name}`, async ({ request }) => {
-    // JSONPlaceholder uses /users for creation
-// It will look for the BASE_URL from the environment, defaulting to the live site if nothing is set
-const response = await request.post(`${process.env.BASE_URL || 'https://jsonplaceholder.typicode.com'}/users`, {
-      data: {
-        name: record.name,
-        job: record.job
-      }
+  test(`Lifecycle Test: ${record.name}`, async ({ request }) => {
+    // 1. CREATE
+    const response = await request.post(`${process.env.BASE_URL || 'https://jsonplaceholder.typicode.com'}/users`, {
+      data: { name: record.name, job: record.job }
     });
-
-    // JSONPlaceholder returns 201 for successful creation
     expect(response.status()).toBe(201);
-    
     const body = await response.json();
+    const userId = body.id;
+
+    // 2. ASSERT
     expect(body.name).toBe(record.name);
+
+    // 3. CLEANUP (Teardown)
+    // We send a DELETE request to ensure no "junk" data is left behind
+    const deleteResponse = await request.delete(`${process.env.BASE_URL || 'https://jsonplaceholder.typicode.com'}/users/${userId}`);
+    
+    // Note: JSONPlaceholder returns 200/204 for successful deletes
+    expect(deleteResponse.ok()).toBeTruthy();
   });
 }
