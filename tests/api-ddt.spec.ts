@@ -30,3 +30,20 @@ for (const record of records) {
     expect(deleteResponse.ok()).toBeTruthy();
   });
 }
+
+// --- Negative Testing Section ---
+const invalidRecords = parse(fs.readFileSync(path.join(__dirname, '../invalid_users.csv'), 'utf-8'), {
+  columns: true, skip_empty_lines: true, trim: true
+});
+
+for (const record of invalidRecords) {
+  test(`Negative Test: Expect Error for ${record.job}`, async ({ request }) => {
+    const response = await request.post(`${process.env.BASE_URL || 'https://jsonplaceholder.typicode.com'}/users`, {
+      data: { name: record.name, job: record.job }
+    });
+
+    // We expect the API to reject the request (400) or fail to find the endpoint (404)
+    // Depending on your API, it might be 400, 422, or 404.
+    expect(response.status()).toBeGreaterThanOrEqual(400);
+  });
+}
