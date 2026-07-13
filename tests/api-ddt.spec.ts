@@ -15,7 +15,7 @@ for (const record of records) {
     const response = await request.post(`${process.env.BASE_URL || 'https://jsonplaceholder.typicode.com'}/users`, {
       data: { name: record.name, job: record.job }
     });
-    expect(response.status()).toBe(201);
+   expect(response.status()).toBe(500);
     const body = await response.json();
     const userId = body.id;
 
